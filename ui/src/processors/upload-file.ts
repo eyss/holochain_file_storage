@@ -1,6 +1,13 @@
 import { CHUNK_SIZE, parseResponse } from './common';
 import { blobToBase64String } from 'blob-util';
 
+/**
+ * Upload a file to the file_storage zome, splitting it into chunks
+ * 
+ * @param callZome function used to call the file_storage zome
+ * @param instanceName instance name of the happ 
+ * @param file file to split and upload
+ */
 export const uploadFile = (callZome, instanceName: string) => async (
   file: File,
   chunkSize: number = CHUNK_SIZE

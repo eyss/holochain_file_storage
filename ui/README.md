@@ -1,32 +1,56 @@
-# @uprtcl/wikis
+# holochain-file-storage
 
-> \_Prtcl resources: [Overview](https://github.com/uprtcl/spec/wiki), [Spec](https://github.com/uprtcl/spec), [Dev guide](https://github.com/uprtcl/js-uprtcl/wiki), [API reference](https://uprtcl.github.io/js-uprtcl/)
+Frontend package to upload and fetch chunked files from the file_storage zome in a holochain app.
 
-This cortex module implements patterns, services and lenses to interact with wiki-like objects.
+This package assumes you have the `file_storage` zome exactly as is in your application.
+
+> Disclaimer: with the current version of Holochain (`0.0.42-alpha5`) this process is very slow, 7 minutes for a 3MB file. We are waiting for holochain core to switch from WASMI to WASMER to improve performance.
+
+> Right now the chunk size is hardcoded at 256KB since Holochain does not accept bigger chunks. This may change with the new WASM engine.
 
 ## Install
 
 ```bash
-npm install @uprtcl/wikis
+npm install holochain-file-storage
 ```
 
 ## Usage
 
-Import the module, instantiate it with its appropiate configuration, and load it:
+### Upload a file
 
 ```ts
-import { WikisModule, WikisIpfs, WikisBindings } from '@uprtcl/wikis';
-import { IpfsConnection } from '@uprtcl/ipfs-provider';
+import { uploadFile } from 'holochain-file-storage';
+import { connect } from '@holochain/hc-web-client';
 
-const ipfsConnection = new IpfsConnection({
-  host: 'ipfs.infura.io',
-  port: 5001,
-  protocol: 'https'
-});
+const instanceName = 'test-instance';
 
-const wikisProvider = new WikisIpfs(ipfsConnection);
+async function upload(file) {
+  const { callZome } = await connect({ url: 'ws://localhost:8888' });
 
-const wikis = new WikisModule([wikisProvider]);
-
-await orchestrator.loadModule(wikis);
+  const fileAddress = await uploadFile(callZome, instanceName)(file);
+}
 ```
+
+### Fetch a file
+
+```ts
+import { fetchFile } from 'holochain-file-storage';
+import { connect } from '@holochain/hc-web-client';
+
+const instanceName = 'test-instance';
+
+async function fetch(fileAddress) {
+  const { callZome } = await connect({ url: 'ws://localhost:8888' });
+
+  const file = await fetchFile(callZome, instanceName)(fileAddress);
+}
+```
+
+## Next steps
+
+- [ ] Add tests
+- [ ] Integrate new version of holochain with new WASM engine
+- [ ] Performance audits and improvements
+- [ ] Create native elements to upload and fetch files
+- [ ] Add the option to selectively retrieve parts of files
+- [ ] Add configurable chunk size?
